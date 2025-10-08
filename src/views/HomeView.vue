@@ -137,18 +137,12 @@ async function fetchReviews() {
       return
     }
 
+    // Use a configuração existente do proxy
     const baseUrl = import.meta.env.DEV 
-      ? '/steamapi'  // Local: usa proxy do Vite
-      : '/api/steam/appreviews'  // Vercel: usa a API route
+      ? '/steamapi'  // Usa proxy no desenvolvimento
+      : '/api/steam'  // No Vercel usa a API route
     
-    let url
-    if (import.meta.env.DEV) {
-      // Local: mantém a estrutura completa do proxy
-      url = `${baseUrl}/appreviews/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
-    } else {
-      // Vercel: URL da API route
-      url = `${baseUrl}/${appId.value}?language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
-    }
+    const url = `${baseUrl}/appreviews/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
 
     console.log('Fetching from:', url)
 
