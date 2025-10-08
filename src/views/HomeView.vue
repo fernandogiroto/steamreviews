@@ -395,7 +395,7 @@ async function searchAppByName(gameName) {
   try {
     const searchUrl = import.meta.env.DEV 
       ? `/steamapi/api/storesearch/?term=${encodeURIComponent(gameName)}&cc=US&l=english`
-      : `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(gameName)}&cc=US&l=english`
+      : `/.netlify/functions/search-game?term=${encodeURIComponent(gameName)}`
 
     const { data } = await axios.get(searchUrl)
 
