@@ -1,92 +1,119 @@
-<template>
-  <div class="steam">
-    <div class="steam__form">
-      <FloatLabel>
-        <InputText id="appId" v-model="appId" />
-        <label for="appId">App ID</label>
-      </FloatLabel>
-      <FloatLabel>
-        <AutoComplete 
-          v-model="selectedItem" 
-          :suggestions="filteredItems" 
-          @complete="searchItems"
-          :virtualScrollerOptions="{ itemSize: 38 }" 
-          optionLabel="label" 
-          dropdown 
+  <template>
+    <div class="steam">
+      <div class="steam__form">
+        <FloatLabel>
+          <InputText id="appId" v-model="appId" />
+          <label for="appId">App ID</label>
+        </FloatLabel>
+        <FloatLabel>
+          <AutoComplete 
+            v-model="selectedItem" 
+            :suggestions="filteredItems" 
+            @complete="searchItems"
+            :virtualScrollerOptions="{ itemSize: 38 }" 
+            optionLabel="label" 
+            dropdown 
+          />
+        </FloatLabel>
+        <FloatLabel>
+          <InputText id="num" v-model="reviewQuantity" placeholder="Número de Reviews"/>
+        </FloatLabel>
+        <Button
+          label="Buscar Reviews"
+          icon="pi pi-search"
+          @click="fetchReviews"
         />
-      </FloatLabel>
-      <FloatLabel>
-        <InputText id="num" v-model="numPerPage" placeholder="Número de Reviews"/>
-      </FloatLabel>
-      <Button
-        label="Buscar Reviews"
-        icon="pi pi-search"
-        @click="fetchReviews"
-      />
+      </div>
+      <div class="steam__loading" v-if="loading">
+        <ProgressSpinner />
+      </div>
+      <div class="steam__list" v-else>
+          <DataTable
+            v-if="reviews.length"
+            :value="reviews"
+            paginator
+            :rows="10"
+            tableStyle="min-width: 60rem"
+            class="mt-5"
+          >
+            <Column field="author.steamid" header="Steam ID"></Column>
+            <Column field="review" header="Review"></Column>
+            <Column field="language" header="Idioma" sortable></Column>
+            <Column
+              header="Tempo"
+              sortable
+              sortField="author.playtime_at_review"
+            >
+              <template #body="slotProps">
+                {{ playtimeBody(slotProps.data.author.playtime_at_review) }}
+              </template>
+            </Column>
+            <Column
+              header="Comprado"
+              sortable
+              sortField="steam_purchase"
+            >
+              <template #body="slotProps">
+                {{ steamPurchaseBody(slotProps.data) }}
+              </template>
+            </Column>
+            <Column
+              header="Data"
+              sortable
+              sortField="timestamp_created"
+            >
+              <template #body="slotProps">
+                {{ dateBody(slotProps.data) }}
+              </template>
+            </Column>
+            <Column
+              header="Analise"
+              sortField="timestamp_created"
+            >
+              <template #body="slotProps">
+                <Button label="Analisar" icon="pi pi-wave-pulse" />
+              </template>
+            </Column>
+            <Column
+              header="More"
+              sortField="timestamp_created"
+            >
+              <template #body="slotProps">
+                <Button label="Info" icon="pi pi-plus-circle" @click="visible = true" />
+              </template>
+            </Column>
+          </DataTable>
+      </div>
+      <Dialog v-model:visible="visible" maximizable modal header="Header" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+          <p class="m-0">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+              Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+          </p>
+      </Dialog>
     </div>
-    <div class="steam__list">
-        <DataTable
-          v-if="reviews.length"
-          :value="reviews"
-          paginator
-          :rows="10"
-          tableStyle="min-width: 60rem"
-          class="mt-5"
-        >
-          <Column field="author.steamid" header="Steam ID"></Column>
-          <Column field="review" header="Review"></Column>
-          <Column field="language" header="Idioma" sortable></Column>
-          <Column
-            header="Playtime"
-            sortable
-            sortField="author.playtime_at_review"
-          >
-            <template #body="slotProps">
-              {{ playtimeBody(slotProps.data.author.playtime_at_review) }}
-            </template>
-          </Column>
-          <Column
-            header="Purchase"
-            sortable
-            sortField="steam_purchase"
-          >
-            <template #body="slotProps">
-              {{ steamPurchaseBody(slotProps.data) }}
-            </template>
-          </Column>
-          <Column
-            header="Date"
-            sortable
-            sortField="timestamp_created"
-          >
-            <template #body="slotProps">
-              {{ dateBody(slotProps.data) }}
-            </template>
-          </Column>
-        </DataTable>
-        <p v-else-if="loading">Carregando reviews...</p>
-        <p v-else-if="error" class="text-red-500">{{ error }}</p>
-    </div>
-  </div>
-</template>
+  </template>
 
-<script setup>
-import { ref } from 'vue'
-import axios from 'axios'
+  <script setup>
+  import { ref, onMounted } from 'vue'
+  import axios from 'axios'
 
-// PrimeVue
-import FloatLabel from 'primevue/floatlabel'
-import InputText from 'primevue/inputtext'
-import Button from 'primevue/button'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
+  // PrimeVue
+  import FloatLabel from 'primevue/floatlabel'
+  import InputText from 'primevue/inputtext'
+  import DataTable from 'primevue/datatable'
+  import Column from 'primevue/column'
+  import ProgressSpinner from 'primevue/progressspinner';
+  import Button from 'primevue/button';
+  import AutoComplete from 'primevue/autocomplete';
+  import Dialog from 'primevue/dialog';
 
-import AutoComplete from 'primevue/autocomplete';
+
 const appId = ref('413150') 
-const numPerPage = ref(10)
+const reviewQuantity = ref(100) 
 const reviews = ref([])
 const loading = ref(false)
 const error = ref('')
+const visible = ref(false);
 
 function steamPurchaseBody(row) {
   return row.steam_purchase ? '✅' : '❌';
@@ -100,13 +127,14 @@ function dateBody(row) {
   const date = new Date(row.timestamp_created * 1000);
   return date.toLocaleDateString('pt-BR');
 }
-const selectedItem = ref(null)     
-const filteredItems = ref([])  
+
+const selectedItem = ref({ label: 'Todos', value: 'all' }) 
+const filteredItems = ref([])
 
 function searchItems(event) {
   const query = event.query.toLowerCase()
   const languages = [
-    { label: 'todos', value: 'all' },
+    { label: 'Todos', value: 'all' },
     { label: 'english', value: 'english' },
     { label: 'portuguese', value: 'portuguese' },
     { label: 'spanish', value: 'spanish' },
@@ -137,31 +165,64 @@ async function fetchReviews() {
 
     const baseUrl = import.meta.env.DEV 
       ? '/steamapi/appreviews' 
-      : '/.netlify/functions/steam'  
-    
-    let url
-    if (import.meta.env.DEV) {
-      url = `${baseUrl}/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
-    } else {
-      const params = new URLSearchParams({
-        appId: appId.value,
-        language: selectedItem.value.value,
-        num_per_page: numPerPage.value.toString()
-      })
-      url = `${baseUrl}?${params.toString()}`
+      : '/.netlify/functions/steam'
+
+    let allReviews = []
+    let cursor = '*'
+    let hasMore = true
+    let requestCount = 0
+    const maxRequests = 50 // Limite de requisições para não exagerar
+
+    while (hasMore && requestCount < maxRequests && allReviews.length < reviewQuantity.value) {
+      let url
+      if (import.meta.env.DEV) {
+        url = `${baseUrl}/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=100&cursor=${encodeURIComponent(cursor)}`
+      } else {
+        const params = new URLSearchParams({
+          appId: appId.value,
+          language: selectedItem.value.value,
+          num_per_page: '100', // 100 por página (máximo da Steam)
+          cursor: cursor
+        })
+        url = `${baseUrl}?${params.toString()}`
+      }
+
+      const { data } = await axios.get(url)
+      requestCount++
+
+      if (data && data.reviews && data.reviews.length > 0) {
+        // Calcular quantas reviews ainda podemos adicionar
+        const remainingSlots = reviewQuantity.value - allReviews.length
+        const reviewsToAdd = data.reviews.slice(0, remainingSlots)
+        
+        // Adicionar reviews à lista
+        allReviews = [...allReviews, ...reviewsToAdd]
+        
+        // Verificar se atingimos a quantidade desejada
+        if (allReviews.length >= reviewQuantity.value) {
+          hasMore = false
+        } 
+        // Verificar se há mais páginas usando o cursor
+        else if (data.cursor && data.cursor !== cursor) {
+          cursor = data.cursor
+          // Pequena pausa para não sobrecarregar
+          await new Promise(resolve => setTimeout(resolve, 300))
+        } else {
+          hasMore = false
+        }
+      } else {
+        hasMore = false
+      }
     }
 
-    const { data } = await axios.get(url)
-
-    if (data && data.reviews) {
-      reviews.value = data.reviews
-    } else if (data && data.error) {
-      error.value = data.error
+    if (allReviews.length > 0) {
+      reviews.value = allReviews
+      console.log(`✅ ${allReviews.length} reviews carregadas`)
     } else {
       error.value = 'Nenhum dado encontrado para esse App ID.'
     }
   } catch (err) {
-    console.error('Erro detalhado:', err)
+    console.error('Erro:', err)
     if (err.response?.data?.error) {
       error.value = err.response.data.error
     } else {
@@ -171,36 +232,70 @@ async function fetchReviews() {
     loading.value = false
   }
 }
-</script>
 
-<style scoped lang="scss">
-
-  @use '@/scss/mixings';
-  @use '@/scss/variables';
-
-
-.steam {
-  padding: 3rem;
-  background: #f8fafc;
-  overflow-y: scroll;
-  @media (max-width: variables.$md-breakpoint) {
-    padding: 2rem 1rem;
+function getUrlParams() {
+  const urlParams = new URLSearchParams(window.location.search)
+  const params = {}
+  for (const [key, value] of urlParams) {
+    params[key] = value
   }
-  &__form{
-    display: flex;
-    flex-direction: row;
-    justify-content: initial;
-    align-items: initial;
-    gap: 1rem;
+  return params
+}
+
+onMounted(() => {
+  // Carregar sugestões iniciais do AutoComplete
+  searchItems({ query: '' })
+  
+  // Verificar se há appId na URL
+  const urlParams = getUrlParams()
+  if (urlParams.appId) {
+    appId.value = urlParams.appId
+    console.log('App ID da URL:', urlParams.appId)
+    fetchReviews()
+    
+    // Opcional: Buscar automaticamente as reviews
+    // fetchReviews()
+  }
+})
+
+
+  </script>
+
+  <style scoped lang="scss">
+
+    @use '@/scss/mixings';
+    @use '@/scss/variables';
+
+
+  .steam {
+    padding: 3rem;
+    background: #f8fafc;
+    overflow-y: scroll;
     @media (max-width: variables.$md-breakpoint) {
-      flex-direction: column;
+      padding: 2rem 1rem;
     }
-
+    &__form{
+      display: flex;
+      flex-direction: row;
+      justify-content: initial;
+      align-items: initial;
+      gap: 1rem;
+      @media (max-width: variables.$md-breakpoint) {
+        flex-direction: column;
+      }
+    }
+    &__loading{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      width: 100%;
+      padding: 10rem;
+    }
   }
-}
 
-input#appId {
-    width: 100%;
-}
+  input#appId {
+      width: 100%;
+  }
 
-</style>
+  </style>
