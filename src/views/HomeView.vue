@@ -46,7 +46,7 @@
       </div>
       <!-- GAME SEARCH RESULT -->
       <div class="steam__list-games top-to-bottom--effect" v-if="searchResults">
-        <Card style="width: 18%; height: 300px;" v-for="game in searchResults" :key="game.id">
+        <Card class="steam-card" v-for="game in searchResults" :key="game.id">
             <template #header>
                 <img class="steam__list-games--image" alt="user header" :src="game.tiny_image" />
             </template>
@@ -596,6 +596,22 @@ onMounted(() => {
 
   input#appId {
       width: 100%;
+  }
+  
+  .steam-card {
+    width: 18%;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    @media (max-width: variables.$lg-breakpoint) {
+      width: 100%;
+      height: auto;
+    }
+    @media (max-width: variables.$md-breakpoint) {
+      width: 100%;
+      height: auto;
+    }
   }
 
   :deep(.p-card-body) {
