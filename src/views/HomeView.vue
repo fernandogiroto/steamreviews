@@ -54,7 +54,7 @@
             <template #subtitle>ID: {{ game.id }}</template>
             <template #content>
                 <p class="m-0" v-if="game.price">
-                    Preço: {{ game.price?.final / 10}} {{ game.price?.currency }}
+                    Preço: {{ game.price?.final / 100}} {{ game.price?.currency }}
                 </p>
             </template>
             <template #footer>
@@ -284,7 +284,6 @@ async function fetchReviews() {
   loading.value = true
   error.value = ''
   reviews.value = []
-  gameSearch.value = ''
   searchResults.value = []
   gameStatistic.value = {} 
 
