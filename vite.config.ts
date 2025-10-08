@@ -1,11 +1,9 @@
 import { fileURLToPath, URL } from 'node:url'
-
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
@@ -22,8 +20,14 @@ export default defineConfig({
       '/steamapi': {
         target: 'https://store.steampowered.com',
         changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/steamapi/, '')
+        secure: false,
+        rewrite: (path) => path.replace(/^\/steamapi/, ''),
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            proxyReq.setHeader('Origin', 'https://store.steampowered.com');
+            proxyReq.setHeader('Referer', 'https://store.steampowered.com');
+          });
+        }
       }
     }
   }
