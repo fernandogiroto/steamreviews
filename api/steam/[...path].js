@@ -1,5 +1,5 @@
 // api/steam/[...path].js
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const { path = [] } = req.query;
   
   // Recria a query string
@@ -32,4 +32,4 @@ export default async function handler(req, res) {
       details: err.message 
     });
   }
-}
+};
