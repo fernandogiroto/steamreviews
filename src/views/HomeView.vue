@@ -19,10 +19,48 @@
           <InputText id="num" v-model="reviewQuantity" placeholder="Número de Reviews"/>
         </FloatLabel>
         <Button
-          label="Buscar Reviews"
+          label="Buscar por ID"
           icon="pi pi-search"
           @click="fetchReviews"
         />
+      </div>
+      <div class="steam__games">
+        <!-- Campo de busca por nome -->
+        <FloatLabel>
+          <InputText 
+            id="gameSearch" 
+            v-model="gameSearch" 
+            placeholder="Digite o nome do jogo"
+            @keyup.enter="searchGame"
+          />
+          <label for="gameSearch">Buscar por Nome</label>
+        </FloatLabel>
+        
+        <Button
+          label="Buscar por Nome"
+          icon="pi pi-search"
+          @click="searchGame"
+          :loading="searching"
+        />
+      </div>
+      <div class="steam__list-games top-to-bottom--effect" v-if="searchResults">
+            <Card style="width: 18%; height: 300px;" v-for="game in searchResults" :key="game.id">
+                <template #header>
+                    <img class="steam__list-games--image" alt="user header" :src="game.tiny_image" />
+                </template>
+                <template #title>{{ game.name }}</template>
+                <template #subtitle>ID: {{ game.id }}</template>
+                <template #content>
+                    <p class="m-0" v-if="game.price">
+                        Preço: {{ game.price?.final }} {{ game.price?.currency }}
+                    </p>
+                </template>
+                <template #footer>
+                    <div class="flex gap-4 mt-1">
+                        <Button label="Ver Reviews" @click="findReviewById(game.id)"/>
+                    </div>
+                </template>
+            </Card>
       </div>
       <div class="steam__loading" v-if="loading">
         <ProgressSpinner />
@@ -84,6 +122,7 @@
             </Column>
           </DataTable>
       </div>
+
       <Dialog v-model:visible="visible" maximizable modal header="Header" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
           <p class="m-0">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -106,6 +145,8 @@
   import Button from 'primevue/button';
   import AutoComplete from 'primevue/autocomplete';
   import Dialog from 'primevue/dialog';
+  import Card from 'primevue/card';
+
 
 
 const appId = ref('413150') 
@@ -233,6 +274,64 @@ async function fetchReviews() {
   }
 }
 
+const gameSearch = ref('')
+const searching = ref(false)
+const searchResults = ref([])
+
+async function searchGame() {
+  if (!gameSearch.value.trim()) return
+
+  searching.value = true
+  try {
+    const result = await searchAppByName(gameSearch.value)
+    
+    if (result.found) {
+      appId.value = ''
+      // Opcional: buscar reviews automaticamente
+      // fetchReviews()
+    } else {
+      error.value = 'Jogo não encontrado. Tente outro nome.'
+    }
+  } catch (err) {
+    error.value = 'Erro ao buscar jogo.'
+  } finally {
+    searching.value = false
+  }
+}
+
+async function findReviewById(gameId) {
+  appId.value = gameId
+  fetchReviews()
+}
+
+
+// Nova função para buscar App ID por nome
+async function searchAppByName(gameName) {
+  try {
+    const searchUrl = import.meta.env.DEV 
+      ? `/steamapi/api/storesearch/?term=${encodeURIComponent(gameName)}&cc=US&l=english`
+      : `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(gameName)}&cc=US&l=english`
+
+    const { data } = await axios.get(searchUrl)
+
+    console.log('Resultado da busca:', data)
+    searchResults.value = data.items || []
+    
+    if (data && data.items && data.items.length > 0) {
+      return {
+        appId: data.items[0].id,
+        name: data.items[0].name,
+        found: true
+      }
+    }
+    
+    return { found: false }
+  } catch (error) {
+    console.error('Erro na busca:', error)
+    return { found: false, error: error.message }
+  }
+}
+
 function getUrlParams() {
   const urlParams = new URLSearchParams(window.location.search)
   const params = {}
@@ -243,18 +342,12 @@ function getUrlParams() {
 }
 
 onMounted(() => {
-  // Carregar sugestões iniciais do AutoComplete
   searchItems({ query: '' })
-  
-  // Verificar se há appId na URL
   const urlParams = getUrlParams()
   if (urlParams.appId) {
     appId.value = urlParams.appId
     console.log('App ID da URL:', urlParams.appId)
     fetchReviews()
-    
-    // Opcional: Buscar automaticamente as reviews
-    // fetchReviews()
   }
 })
 
@@ -271,6 +364,8 @@ onMounted(() => {
     padding: 3rem;
     background: #f8fafc;
     overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
     @media (max-width: variables.$md-breakpoint) {
       padding: 2rem 1rem;
     }
@@ -292,10 +387,49 @@ onMounted(() => {
       width: 100%;
       padding: 10rem;
     }
+    &__list-games{
+      display: flex;
+      justify-content: initial;
+      align-items: initial;
+      height: 100%;
+      width: 100%;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+      &--image{
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+      }
+    }
+
+    &__games{
+      margin-top: 2rem;
+      display: flex;
+      justify-content: flex-start;
+      flex-direction: row;
+      gap: 1rem;
+      @media (max-width: variables.$md-breakpoint) {
+        flex-direction: column;
+      }
+    }
   }
 
   input#appId {
       width: 100%;
   }
+
+  :deep(.p-card-body) {
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  :deep(.p-card-footer) {
+    justify-content: initial;
+    display: flex;
+    flex: 1;
+    align-items: end;
+  }
+
 
   </style>
