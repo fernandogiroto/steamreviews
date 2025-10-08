@@ -137,11 +137,14 @@ async function fetchReviews() {
       return
     }
 
-    const baseUrl = import.meta.env.DEV
-    ? '/steamapi' 
-    : '/api/steam' 
-
+    // Use a configuração existente do proxy
+    const baseUrl = import.meta.env.DEV 
+      ? '/steamapi'  // Usa proxy no desenvolvimento
+      : '/api/steam'  // No Vercel usa a API route
+    
     const url = `${baseUrl}/appreviews/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
+
+    console.log('Fetching from:', url)
 
     const { data } = await axios.get(url)
 
@@ -151,12 +154,12 @@ async function fetchReviews() {
       error.value = 'Nenhum dado encontrado para esse App ID.'
     }
   } catch (err) {
+    console.error('Erro detalhado:', err)
     error.value = 'Erro ao buscar reviews. Verifique o App ID ou tente novamente.'
   } finally {
     loading.value = false
   }
 }
-
 </script>
 
 <style scoped lang="scss">

@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "dist/**", "use": "@vercel/static" },
+    { "src": "api/steam/[...path].js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    {
+      "src": "/api/steam/(.*)",
+      "dest": "/api/steam/[...path].js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/$1"
+    }
+  ]
+}
