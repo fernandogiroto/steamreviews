@@ -14,11 +14,9 @@
           optionLabel="label" 
           dropdown 
         />
-        <label for="language">Idioma (ex: english)</label>
       </FloatLabel>
       <FloatLabel>
-        <InputText id="num" v-model="numPerPage" />
-        <label for="num">Reviews</label>
+        <InputText id="num" v-model="numPerPage" placeholder="Número de Reviews"/>
       </FloatLabel>
       <Button
         label="Buscar Reviews"
@@ -138,15 +136,13 @@ async function fetchReviews() {
     }
 
     const baseUrl = import.meta.env.DEV 
-      ? '/steamapi/appreviews'  // Local: proxy do Vite
-      : '/.netlify/functions/steam'  // Netlify: functions
+      ? '/steamapi/appreviews' 
+      : '/.netlify/functions/steam'  
     
     let url
     if (import.meta.env.DEV) {
-      // Desenvolvimento
       url = `${baseUrl}/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
     } else {
-      // Produção Netlify
       const params = new URLSearchParams({
         appId: appId.value,
         language: selectedItem.value.value,
@@ -154,8 +150,6 @@ async function fetchReviews() {
       })
       url = `${baseUrl}?${params.toString()}`
     }
-
-    console.log('Fetching from:', url)
 
     const { data } = await axios.get(url)
 
@@ -181,16 +175,32 @@ async function fetchReviews() {
 
 <style scoped lang="scss">
 
+  @use '@/scss/mixings';
+  @use '@/scss/variables';
+
+
 .steam {
   padding: 3rem;
   background: #f8fafc;
   overflow-y: scroll;
+  @media (max-width: variables.$md-breakpoint) {
+    padding: 2rem 1rem;
+  }
   &__form{
     display: flex;
+    flex-direction: row;
     justify-content: initial;
     align-items: initial;
     gap: 1rem;
+    @media (max-width: variables.$md-breakpoint) {
+      flex-direction: column;
+    }
+
   }
+}
+
+input#appId {
+    width: 100%;
 }
 
 </style>
