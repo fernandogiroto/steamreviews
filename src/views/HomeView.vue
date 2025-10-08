@@ -1,5 +1,6 @@
   <template>
     <div class="steam">
+      <!-- FORM -->
       <div class="steam__form">
         <FloatLabel>
           <InputText id="appId" v-model="appId" />
@@ -24,8 +25,8 @@
           @click="fetchReviews"
         />
       </div>
+      <!-- FORM NAME -->
       <div class="steam__games">
-        <!-- Campo de busca por nome -->
         <FloatLabel>
           <InputText 
             id="gameSearch" 
@@ -43,29 +44,29 @@
           :loading="searching"
         />
       </div>
+      <!-- GAME SEARCH RESULT -->
       <div class="steam__list-games top-to-bottom--effect" v-if="searchResults">
-            <Card style="width: 18%; height: 300px;" v-for="game in searchResults" :key="game.id">
-                <template #header>
-                    <img class="steam__list-games--image" alt="user header" :src="game.tiny_image" />
-                </template>
-                <template #title>{{ game.name }}</template>
-                <template #subtitle>ID: {{ game.id }}</template>
-                <template #content>
-                    <p class="m-0" v-if="game.price">
-                        Preço: {{ game.price?.final }} {{ game.price?.currency }}
-                    </p>
-                </template>
-                <template #footer>
-                    <div class="flex gap-4 mt-1">
-                        <Button label="Ver Reviews" @click="findReviewById(game.id)"/>
-                    </div>
-                </template>
-            </Card>
+        <Card style="width: 18%; height: 300px;" v-for="game in searchResults" :key="game.id">
+            <template #header>
+                <img class="steam__list-games--image" alt="user header" :src="game.tiny_image" />
+            </template>
+            <template #title>{{ game.name }}</template>
+            <template #subtitle>ID: {{ game.id }}</template>
+            <template #content>
+                <p class="m-0" v-if="game.price">
+                    Preço: {{ game.price?.final }} {{ game.price?.currency }}
+                </p>
+            </template>
+            <template #footer>
+                <div class="flex gap-4 mt-1">
+                    <Button label="Ver Reviews" @click="findReviewById(game.id)"/>
+                </div>
+            </template>
+        </Card>
       </div>
-      <div class="steam__loading" v-if="loading">
-        <ProgressSpinner />
-      </div>
-      <div class="steam__list" v-else>
+      <!-- REVIEWS RESULT -->
+      <div class="steam__list" v-if="!loading && reviews.length">
+          <Button label="Ver Estatísticas" icon="pi pi-plus-circle" @click="showStatiscs = true" />
           <DataTable
             v-if="reviews.length"
             :value="reviews"
@@ -122,12 +123,95 @@
             </Column>
           </DataTable>
       </div>
+      <div class="steam__loading" v-if="loading">
+        <ProgressSpinner />
+      </div>
 
       <Dialog v-model:visible="visible" maximizable modal header="Header" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
           <p class="m-0">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
               Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
           </p>
+      </Dialog>
+      <Dialog v-model:visible="showStatiscs" maximizable modal header="Estatísticas das Reviews" :style="{ width: '60rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+        <div v-if="gameStatistic.total" class="statistics">
+          <!-- Estatísticas Gerais -->
+          <div class="stat-section">
+            <h3>Estatísticas Gerais</h3>
+            <div class="stats-grid">
+              <div class="stat-card positive">
+                <span class="stat-number">{{ gameStatistic.general.positive }}</span>
+                <span class="stat-label">Positivas ({{ gameStatistic.general.positivePercentage }}%)</span>
+              </div>
+              <div class="stat-card negative">
+                <span class="stat-number">{{ gameStatistic.general.negative }}</span>
+                <span class="stat-label">Negativas ({{ gameStatistic.general.negativePercentage }}%)</span>
+              </div>
+              <div class="stat-card total">
+                <span class="stat-number">{{ gameStatistic.total }}</span>
+                <span class="stat-label">Total de Reviews</span>
+              </div>
+            </div>
+          </div>
+          <!-- Por Idioma -->
+          <div class="stat-section">
+            <h3>Distribuição por Idioma</h3>
+            <DataTable :value="Object.entries(gameStatistic.byLanguage)" class="p-datatable-sm">
+              <Column field="0" header="Idioma">
+                <template #body="slotProps">
+                  {{ slotProps.data[0] }}
+                </template>
+              </Column>
+              <Column field="1.total" header="Total"></Column>
+              <Column header="Positivas">
+                <template #body="slotProps">
+                  {{ slotProps.data[1].positive }} ({{ slotProps.data[1].positivePercentage }}%)
+                </template>
+              </Column>
+              <Column header="Negativas">
+                <template #body="slotProps">
+                  {{ slotProps.data[1].negative }} ({{ slotProps.data[1].negativePercentage }}%)
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+          <!-- Por Tempo de Jogo -->
+          <div class="stat-section">
+            <h3>Tempo de Jogo</h3>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-number">{{ gameStatistic.byPlaytime.lessThan1h }}</span>
+                <span class="stat-label">&lt; 1 hora</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-number">{{ gameStatistic.byPlaytime.between1hAnd10h }}</span>
+                <span class="stat-label">1-10 horas</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-number">{{ gameStatistic.byPlaytime.moreThan10h }}</span>
+                <span class="stat-label">&gt; 10 horas</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-number">{{ gameStatistic.averagePlaytime }}h</span>
+                <span class="stat-label">Média</span>
+              </div>
+            </div>
+          </div>
+          <!-- Compra na Steam -->
+          <div class="stat-section">
+            <h3>Compra na Steam</h3>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-number">{{ gameStatistic.withPurchase }}</span>
+                <span class="stat-label">Comprado na Steam</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-number">{{ gameStatistic.withoutPurchase }}</span>
+                <span class="stat-label">Não comprado</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </Dialog>
     </div>
   </template>
@@ -148,13 +232,17 @@
   import Card from 'primevue/card';
 
 
-
 const appId = ref('413150') 
 const reviewQuantity = ref(100) 
 const reviews = ref([])
 const loading = ref(false)
 const error = ref('')
 const visible = ref(false);
+const gameSearch = ref('')
+const searching = ref(false)
+const gameStatistic = ref({})
+const showStatiscs = ref(false)
+const searchResults = ref([])
 
 function steamPurchaseBody(row) {
   return row.steam_purchase ? '✅' : '❌';
@@ -196,6 +284,9 @@ async function fetchReviews() {
   loading.value = true
   error.value = ''
   reviews.value = []
+  gameSearch.value = ''
+  searchResults.value = []
+  gameStatistic.value = {} // Reset estatísticas
 
   try {
     if (!selectedItem.value) {
@@ -212,7 +303,7 @@ async function fetchReviews() {
     let cursor = '*'
     let hasMore = true
     let requestCount = 0
-    const maxRequests = 50 // Limite de requisições para não exagerar
+    const maxRequests = 50
 
     while (hasMore && requestCount < maxRequests && allReviews.length < reviewQuantity.value) {
       let url
@@ -222,7 +313,7 @@ async function fetchReviews() {
         const params = new URLSearchParams({
           appId: appId.value,
           language: selectedItem.value.value,
-          num_per_page: '100', // 100 por página (máximo da Steam)
+          num_per_page: '100',
           cursor: cursor
         })
         url = `${baseUrl}?${params.toString()}`
@@ -232,21 +323,16 @@ async function fetchReviews() {
       requestCount++
 
       if (data && data.reviews && data.reviews.length > 0) {
-        // Calcular quantas reviews ainda podemos adicionar
         const remainingSlots = reviewQuantity.value - allReviews.length
         const reviewsToAdd = data.reviews.slice(0, remainingSlots)
         
-        // Adicionar reviews à lista
         allReviews = [...allReviews, ...reviewsToAdd]
         
-        // Verificar se atingimos a quantidade desejada
         if (allReviews.length >= reviewQuantity.value) {
           hasMore = false
         } 
-        // Verificar se há mais páginas usando o cursor
         else if (data.cursor && data.cursor !== cursor) {
           cursor = data.cursor
-          // Pequena pausa para não sobrecarregar
           await new Promise(resolve => setTimeout(resolve, 300))
         } else {
           hasMore = false
@@ -258,6 +344,8 @@ async function fetchReviews() {
 
     if (allReviews.length > 0) {
       reviews.value = allReviews
+      // Calcular estatísticas
+      calculateStatistics(allReviews)
       console.log(`✅ ${allReviews.length} reviews carregadas`)
     } else {
       error.value = 'Nenhum dado encontrado para esse App ID.'
@@ -274,10 +362,6 @@ async function fetchReviews() {
   }
 }
 
-const gameSearch = ref('')
-const searching = ref(false)
-const searchResults = ref([])
-
 async function searchGame() {
   if (!gameSearch.value.trim()) return
 
@@ -287,6 +371,7 @@ async function searchGame() {
     
     if (result.found) {
       appId.value = ''
+      reviews.value = []
       // Opcional: buscar reviews automaticamente
       // fetchReviews()
     } else {
@@ -330,6 +415,91 @@ async function searchAppByName(gameName) {
     console.error('Erro na busca:', error)
     return { found: false, error: error.message }
   }
+}
+
+function calculateStatistics(reviewsArray) {
+  if (!reviewsArray.length) return
+
+  const stats = {
+    total: reviewsArray.length,
+    general: {
+      positive: 0,
+      negative: 0,
+      positivePercentage: 0,
+      negativePercentage: 0
+    },
+    byLanguage: {},
+    byPlaytime: {
+      lessThan1h: 0,
+      between1hAnd10h: 0,
+      moreThan10h: 0
+    },
+    withPurchase: 0,
+    withoutPurchase: 0,
+    averagePlaytime: 0
+  }
+
+  let totalPlaytime = 0
+
+  // Calcular estatísticas
+  reviewsArray.forEach(review => {
+    // Positivas vs Negativas
+    if (review.voted_up) {
+      stats.general.positive++
+    } else {
+      stats.general.negative++
+    }
+
+    // Por idioma
+    const lang = review.language || 'unknown'
+    if (!stats.byLanguage[lang]) {
+      stats.byLanguage[lang] = {
+        total: 0,
+        positive: 0,
+        negative: 0
+      }
+    }
+    stats.byLanguage[lang].total++
+    if (review.voted_up) {
+      stats.byLanguage[lang].positive++
+    } else {
+      stats.byLanguage[lang].negative++
+    }
+
+    // Por tempo de jogo
+    const playtimeHours = review.author.playtime_at_review / 60
+    totalPlaytime += playtimeHours
+    
+    if (playtimeHours < 1) {
+      stats.byPlaytime.lessThan1h++
+    } else if (playtimeHours <= 10) {
+      stats.byPlaytime.between1hAnd10h++
+    } else {
+      stats.byPlaytime.moreThan10h++
+    }
+
+    // Compra na Steam
+    if (review.steam_purchase) {
+      stats.withPurchase++
+    } else {
+      stats.withoutPurchase++
+    }
+  })
+
+  // Calcular porcentagens
+  stats.general.positivePercentage = ((stats.general.positive / stats.total) * 100).toFixed(1)
+  stats.general.negativePercentage = ((stats.general.negative / stats.total) * 100).toFixed(1)
+  stats.averagePlaytime = (totalPlaytime / stats.total).toFixed(1)
+
+  // Calcular porcentagens por idioma
+  Object.keys(stats.byLanguage).forEach(lang => {
+    const langStats = stats.byLanguage[lang]
+    langStats.positivePercentage = ((langStats.positive / langStats.total) * 100).toFixed(1)
+    langStats.negativePercentage = ((langStats.negative / langStats.total) * 100).toFixed(1)
+  })
+
+  gameStatistic.value = stats
+  console.log('Estatísticas calculadas:', stats)
 }
 
 function getUrlParams() {
@@ -413,6 +583,12 @@ onMounted(() => {
         flex-direction: column;
       }
     }
+  }
+
+  .statistics{
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
   }
 
   input#appId {
