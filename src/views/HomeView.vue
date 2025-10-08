@@ -66,7 +66,7 @@
       </div>
       <!-- REVIEWS RESULT -->
       <div class="steam__list" v-if="!loading && reviews.length">
-          <Button label="Ver Estatísticas" icon="pi pi-plus-circle" @click="showStatiscs = true" />
+          <Button label="Ver Estatísticas" severity="warn" icon="pi pi-chart-scatter" @click="showStatiscs = true" />
           <DataTable
             v-if="reviews.length"
             :value="reviews"
@@ -114,7 +114,7 @@
               </template>
             </Column>
             <Column
-              header="More"
+              header="Ver Mais"
               sortField="timestamp_created"
             >
               <template #body="slotProps">
@@ -138,24 +138,24 @@
           <!-- Estatísticas Gerais -->
           <div class="stat-section">
             <h3>Estatísticas Gerais</h3>
-            <div class="stats-grid">
+            <div class="stats-grid mt-2">
               <div class="stat-card positive">
                 <span class="stat-number">{{ gameStatistic.general.positive }}</span>
-                <span class="stat-label">Positivas ({{ gameStatistic.general.positivePercentage }}%)</span>
+                <span class="stat-label"> Positivas ({{ gameStatistic.general.positivePercentage }}%)</span>
               </div>
               <div class="stat-card negative">
                 <span class="stat-number">{{ gameStatistic.general.negative }}</span>
-                <span class="stat-label">Negativas ({{ gameStatistic.general.negativePercentage }}%)</span>
+                <span class="stat-label"> Negativas ({{ gameStatistic.general.negativePercentage }}%)</span>
               </div>
               <div class="stat-card total">
                 <span class="stat-number">{{ gameStatistic.total }}</span>
-                <span class="stat-label">Total de Reviews</span>
+                <span class="stat-label"> Total de Reviews</span>
               </div>
             </div>
           </div>
           <!-- Por Idioma -->
           <div class="stat-section">
-            <h3>Distribuição por Idioma</h3>
+            <h3 class="mb-2">Distribuição por Idioma</h3>
             <DataTable :value="Object.entries(gameStatistic.byLanguage)" class="p-datatable-sm">
               <Column field="0" header="Idioma">
                 <template #body="slotProps">
@@ -178,7 +178,7 @@
           <!-- Por Tempo de Jogo -->
           <div class="stat-section">
             <h3>Tempo de Jogo</h3>
-            <div class="stats-grid">
+            <div class="stats-grid mt-2">
               <div class="stat-card">
                 <span class="stat-number">{{ gameStatistic.byPlaytime.lessThan1h }}</span>
                 <span class="stat-label">&lt; 1 hora</span>
@@ -189,11 +189,11 @@
               </div>
               <div class="stat-card">
                 <span class="stat-number">{{ gameStatistic.byPlaytime.moreThan10h }}</span>
-                <span class="stat-label">&gt; 10 horas</span>
+                <span class="stat-label"> &gt; 10 horas</span>
               </div>
               <div class="stat-card">
                 <span class="stat-number">{{ gameStatistic.averagePlaytime }}h</span>
-                <span class="stat-label">Média</span>
+                <span class="stat-label"> Média</span>
               </div>
             </div>
           </div>
@@ -202,12 +202,12 @@
             <h3>Compra na Steam</h3>
             <div class="stats-grid">
               <div class="stat-card">
-                <span class="stat-number">{{ gameStatistic.withPurchase }}</span>
-                <span class="stat-label">Comprado na Steam</span>
+                <span class="stat-number">{{ gameStatistic.withPurchase }} </span>
+                <span class="stat-label"> Comprado na Steam</span>
               </div>
               <div class="stat-card">
-                <span class="stat-number">{{ gameStatistic.withoutPurchase }}</span>
-                <span class="stat-label">Não comprado</span>
+                <span class="stat-number">{{ gameStatistic.withoutPurchase }} </span>
+                <span class="stat-label"> Não comprado</span>
               </div>
             </div>
           </div>
