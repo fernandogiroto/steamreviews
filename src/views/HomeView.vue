@@ -138,10 +138,11 @@ async function fetchReviews() {
     }
 
     const baseUrl = import.meta.env.DEV
-      ? '/steamapi'
-      : '/api/steam'; 
+    ? '/steamapi' 
+    : '/api/steam' 
 
-    const url = `${baseUrl}/appreviews/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`;
+    const url = `${baseUrl}/appreviews/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
+
     const { data } = await axios.get(url)
 
     if (data && data.reviews) {
