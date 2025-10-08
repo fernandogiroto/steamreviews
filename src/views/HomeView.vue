@@ -136,10 +136,10 @@ async function fetchReviews() {
       loading.value = false
       return
     }
-    const url = `/steamapi/appreviews/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`
-    const { data } = await axios.get(url)
+    const baseUrl = import.meta.env.DEV ? '/steamapi' : 'https://store.steampowered.com';
+    const url = `${baseUrl}/appreviews/${appId.value}?json=1&language=${selectedItem.value.value}&filter=recent&review_type=all&purchase_type=all&num_per_page=${numPerPage.value}`;
 
-    console.log(data)
+    const { data } = await axios.get(url)
 
     if (data && data.reviews) {
       reviews.value = data.reviews
