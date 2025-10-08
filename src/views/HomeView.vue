@@ -54,7 +54,7 @@
             <template #subtitle>ID: {{ game.id }}</template>
             <template #content>
                 <p class="m-0" v-if="game.price">
-                    Preço: {{ game.price?.final }} {{ game.price?.currency }}
+                    Preço: {{ game.price?.final / 10}} {{ game.price?.currency }}
                 </p>
             </template>
             <template #footer>
@@ -233,7 +233,7 @@
 
 
 const appId = ref('413150') 
-const reviewQuantity = ref(100) 
+const reviewQuantity = ref(5000) 
 const reviews = ref([])
 const loading = ref(false)
 const error = ref('')
@@ -286,7 +286,7 @@ async function fetchReviews() {
   reviews.value = []
   gameSearch.value = ''
   searchResults.value = []
-  gameStatistic.value = {} // Reset estatísticas
+  gameStatistic.value = {} 
 
   try {
     if (!selectedItem.value) {
@@ -304,6 +304,10 @@ async function fetchReviews() {
     let hasMore = true
     let requestCount = 0
     const maxRequests = 50
+
+    if(reviewQuantity.value === 0){
+      reviewQuantity.value = 5000
+    }
 
     while (hasMore && requestCount < maxRequests && allReviews.length < reviewQuantity.value) {
       let url
