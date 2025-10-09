@@ -39,7 +39,6 @@
           />
           <label for="gameSearch">Buscar por Nome</label>
         </FloatLabel>
-        
         <Button
           label="Buscar por Nome"
           icon="pi pi-search"
