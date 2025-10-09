@@ -2,11 +2,11 @@
     <div class="steam">
       <!-- FORM -->
       <div class="steam__form">
-        <FloatLabel>
+        <FloatLabel class="mt-3">
           <InputText id="appId" v-model="appId" />
           <label for="appId">App ID</label>
         </FloatLabel>
-        <FloatLabel>
+        <FloatLabel class="mt-3">
           <AutoComplete 
             v-model="selectedItem" 
             :suggestions="filteredItems" 
@@ -15,13 +15,16 @@
             optionLabel="label" 
             dropdown 
           />
+          <label for="num">Idioma</label>
         </FloatLabel>
-        <FloatLabel>
+        <FloatLabel class="mt-3">
           <InputText id="num" v-model="reviewQuantity" placeholder="Número de Reviews"/>
+          <label for="num">Número de Reviews</label>
         </FloatLabel>
         <Button
           label="Buscar por ID"
           icon="pi pi-search"
+          class="mt-3 button-form"
           @click="fetchReviews"
         />
       </div>
@@ -31,7 +34,7 @@
           <InputText 
             id="gameSearch" 
             v-model="gameSearch" 
-            placeholder="Digite o nome do jogo"
+            placeholder="Nome do jogo"
             @keyup.enter="searchGame"
           />
           <label for="gameSearch">Buscar por Nome</label>
@@ -42,6 +45,12 @@
           icon="pi pi-search"
           @click="searchGame"
           :loading="searching"
+        />
+        <Button
+          label="Buscar por ID"
+          icon="pi pi-search"
+          class="button-reorder"
+          @click="fetchReviews"
         />
       </div>
       <!-- GAME SEARCH RESULT -->
@@ -276,15 +285,32 @@ function searchItems(event) {
   const query = event.query.toLowerCase()
   const languages = [
     { label: 'Todos', value: 'all' },
-    { label: 'english', value: 'english' },
-    { label: 'portuguese', value: 'portuguese' },
-    { label: 'spanish', value: 'spanish' },
-    { label: 'french', value: 'french' },
-    { label: 'german', value: 'german' },
-    { label: 'chinese', value: 'schinese' },
-    { label: 'turkish', value: 'turkish' },
-    { label: 'russian', value: 'russian' },
-    { label: 'korean', value: 'koreana' },
+    { label: 'Alemão', value: 'german' },
+    { label: 'Búlgaro', value: 'bulgarian' },
+    { label: 'Checo', value: 'czech' },
+    { label: 'Chinês', value: 'schinese' },
+    { label: 'Chinês Tradicional', value: 'tchinese' },
+    { label: 'Coreâno', value: 'koreana' },
+    { label: 'Dinamarquês', value: 'danish' },
+    { label: 'Espanhol', value: 'spanish' },
+    { label: 'Filandês', value: 'finnish' },
+    { label: 'Francês', value: 'french' },
+    { label: 'Grego', value: 'greek' },
+    { label: 'Holandês', value: 'dutch' },
+    { label: 'Indones', value: 'indonesian' },
+    { label: 'Inglês', value: 'english' },
+    { label: 'Italiano', value: 'italian' },
+    { label: 'Japonês', value: 'japanese' },
+    { label: 'Latam', value: 'latam' },
+    { label: 'Polonês', value: 'polish' },
+    { label: 'Português - BR', value: 'brazilian' },
+    { label: 'Português - PT', value: 'portuguese' },
+    { label: 'Russo', value: 'russian' },
+    { label: 'Thai', value: 'thai' },
+    { label: 'Turco', value: 'turkish' },
+    { label: 'Suêco', value: 'swedish' },
+    { label: 'Ucraniano', value: 'ukrainian' },
+    { label: 'Vietnamese', value: 'vietnamese' },
   ]
 
   filteredItems.value = languages.filter(lang =>
@@ -316,7 +342,7 @@ async function fetchReviews() {
     let cursor = '*'
     let hasMore = true
     let requestCount = 0
-    const maxRequests = 50
+    const maxRequests = 2000
 
     if(reviewQuantity.value === 0){
       reviewQuantity.value = 5000
@@ -348,9 +374,8 @@ async function fetchReviews() {
         allReviews = [...allReviews, ...reviewsToAdd]
         currentFetched.value = allReviews.length
         
-        // Atualizar progresso - ARREDONDANDO para 2 casas decimais
         const progress = (allReviews.length / reviewQuantity.value) * 100
-        loadingProgress.value = Math.min(Math.round(progress * 100) / 100, 100) // 2 casas decimais
+        loadingProgress.value = Math.min(Math.round(progress * 100) / 100, 100) 
         
         if (allReviews.length >= reviewQuantity.value) {
           hasMore = false
@@ -368,7 +393,7 @@ async function fetchReviews() {
 
     if (allReviews.length > 0) {
       reviews.value = allReviews
-      loadingProgress.value = 100 // Garantir 100% ao finalizar
+      loadingProgress.value = 100
       calculateStatistics(allReviews)
       console.log(`✅ ${allReviews.length} reviews carregadas`)
     } else {
@@ -639,6 +664,20 @@ onMounted(() => {
     }
   }
 
+  .button-form{
+    @media (max-width: variables.$md-breakpoint) {
+      display: none;
+    }
+  }
+
+  .button-reorder{
+    @media (min-width: variables.$md-breakpoint) {
+      display: none;
+    }
+  }
+
+
+
   :deep(.p-card-body) {
     justify-content: space-between;
     height: 100%;
@@ -651,5 +690,12 @@ onMounted(() => {
     align-items: end;
   }
 
+  :deep(.p-autocomplete) {
+    width: 100%;
+  }
 
-  </style>
+  :deep(.p-inputtext ) {
+    width: 100%;
+  }
+
+</style>
