@@ -174,7 +174,7 @@
             severity="danger"
             @click="generatePDF"
             :loading="generatingPDF"
-            class="p-button-sm button-export"
+            class="p-button-sm button-export no-print"
           />
           <!-- Estatísticas Gerais -->
           <div class="stat-section">
@@ -610,15 +610,6 @@
     gameStatistic.value = stats
     console.log('Estatísticas calculadas:', stats)
   }
-  function getUrlParams() {
-    const urlParams = new URLSearchParams(window.location.search)
-    const params = {}
-    for (const [key, value] of urlParams) {
-      params[key] = value
-    }
-    return params
-  }
-  // Função para gerar PDF
   async function generatePDF() {
     generatingPDF.value = true
     
@@ -629,11 +620,24 @@
       }
 
       const element = document.getElementById('statistics-content')
+      
+      // Esconder o botão temporariamente
+      const exportButton = element.querySelector('.no-print')
+      if (exportButton) {
+        exportButton.style.display = 'none'
+      }
+
       const canvas = await html2canvas(element, {
         scale: 2, // Melhor qualidade
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        backgroundColor: '#ffffff' // Fundo branco para melhor contraste
       })
+
+      // Restaurar o botão após a captura
+      if (exportButton) {
+        exportButton.style.display = ''
+      }
 
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF('p', 'mm', 'a4')
@@ -667,7 +671,14 @@
       generatingPDF.value = false
     }
   }
-
+  function getUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const params = {}
+    for (const [key, value] of urlParams) {
+      params[key] = value
+    }
+    return params
+  }
   onMounted(() => {
     searchItems({ query: '' })
     const urlParams = getUrlParams()
@@ -808,7 +819,19 @@
     width: 145px;
     height: 45px;
     font-size: 1rem;
-}
+  }
+
+  /* Esconde o botão durante a geração do PDF */
+  .no-print {
+    /* Esta classe será usada pelo html2canvas */
+  }
+
+  /* Garante que o botão não apareça no PDF */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+  }
 
 
   :deep(.p-card-body) {
