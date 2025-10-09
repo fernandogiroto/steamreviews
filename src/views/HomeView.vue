@@ -482,12 +482,13 @@
     appId.value = gameId
     fetchReviews()
   }
-  // Função para buscar informações do jogo pelo App ID
   async function fetchGameInfo(appId) {
     try {
       const searchUrl = import.meta.env.DEV 
-        ? `/steamapi/api/appdetails/?appids=${appId}`
-        : `https://store.steampowered.com/api/appdetails/?appids=${appId}`
+        ? `/steamapi/api/appdetails/?appids=${appId}` 
+        : `/.netlify/functions/game-details?appId=${appId}`  
+
+      console.log('Fetching game info from:', searchUrl)
 
       const { data } = await axios.get(searchUrl)
       
