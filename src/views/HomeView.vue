@@ -129,8 +129,7 @@
           <div class="progress-section">
             <ProgressBar :value="loadingProgress" class="mb-2" />
             <p class="progress-text">
-              Carregando reviews... {{ currentFetched }} de {{ totalReviewsToFetch }} 
-              ({{ Math.round(loadingProgress) }}%)
+              Carregando reviews... {{ currentFetched }} de {{ totalReviewsToFetch }}
             </p>
           </div>
         </div>
