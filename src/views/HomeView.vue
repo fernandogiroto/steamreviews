@@ -123,8 +123,17 @@
             </Column>
           </DataTable>
       </div>
+      <!-- LOADING REVIEWS -->
       <div class="steam__loading" v-if="loading">
-        <ProgressSpinner />
+        <div class="loading-content">
+          <div class="progress-section">
+            <ProgressBar :value="loadingProgress" class="mb-2" />
+            <p class="progress-text">
+              Carregando reviews... {{ currentFetched }} de {{ totalReviewsToFetch }} 
+              ({{ Math.round(loadingProgress) }}%)
+            </p>
+          </div>
+        </div>
       </div>
 
       <Dialog v-model:visible="visible" maximizable modal header="Header" :style="{ width: '50rem' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
@@ -230,6 +239,7 @@
   import AutoComplete from 'primevue/autocomplete';
   import Dialog from 'primevue/dialog';
   import Card from 'primevue/card';
+  import ProgressBar from 'primevue/progressbar';
 
 
 const appId = ref('413150') 
@@ -243,6 +253,9 @@ const searching = ref(false)
 const gameStatistic = ref({})
 const showStatiscs = ref(false)
 const searchResults = ref([])
+const loadingProgress = ref(0)
+const totalReviewsToFetch = ref(0)
+const currentFetched = ref(0)
 
 function steamPurchaseBody(row) {
   return row.steam_purchase ? '✅' : '❌';
@@ -285,7 +298,9 @@ async function fetchReviews() {
   error.value = ''
   reviews.value = []
   searchResults.value = []
-  gameStatistic.value = {} 
+  gameStatistic.value = {}
+  loadingProgress.value = 0
+  currentFetched.value = 0
 
   try {
     if (!selectedItem.value) {
@@ -307,6 +322,8 @@ async function fetchReviews() {
     if(reviewQuantity.value === 0){
       reviewQuantity.value = 5000
     }
+
+    totalReviewsToFetch.value = reviewQuantity.value
 
     while (hasMore && requestCount < maxRequests && allReviews.length < reviewQuantity.value) {
       let url
@@ -330,6 +347,11 @@ async function fetchReviews() {
         const reviewsToAdd = data.reviews.slice(0, remainingSlots)
         
         allReviews = [...allReviews, ...reviewsToAdd]
+        currentFetched.value = allReviews.length
+        
+        // Atualizar progresso - ARREDONDANDO para 2 casas decimais
+        const progress = (allReviews.length / reviewQuantity.value) * 100
+        loadingProgress.value = Math.min(Math.round(progress * 100) / 100, 100) // 2 casas decimais
         
         if (allReviews.length >= reviewQuantity.value) {
           hasMore = false
@@ -347,7 +369,7 @@ async function fetchReviews() {
 
     if (allReviews.length > 0) {
       reviews.value = allReviews
-      // Calcular estatísticas
+      loadingProgress.value = 100 // Garantir 100% ao finalizar
       calculateStatistics(allReviews)
       console.log(`✅ ${allReviews.length} reviews carregadas`)
     } else {
@@ -362,6 +384,10 @@ async function fetchReviews() {
     }
   } finally {
     loading.value = false
+    setTimeout(() => {
+      loadingProgress.value = 0
+      currentFetched.value = 0
+    }, 2000)
   }
 }
 
